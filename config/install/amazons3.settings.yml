@@ -1,0 +1,12 @@
+amazons3_bucket: ''
+amazons3_file_uri_scheme_override: false
+amazons3_key: ''
+amazons3_secret: ''
+amazons3_cache: true
+amazons3_cname: 0
+amazons3_domain: ''
+amazons3_cloudfront: 0
+amazons3_hostname: ''
+amazons3_cloudfront_keypair_id: false
+amazons3_cloudfront_private_key: false
+amazons3_migrate_credentials: true

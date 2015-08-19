@@ -19,7 +19,7 @@ function amazons3_stream_wrappers() {
   // This hook is called before hook_init(), so we have to manually register
   // the autoloader. We also need to handle module upgrades where
   // composer_manager might not be enabled yet.
-  if (!module_exists('composer_manager')) {
+  if (!\Drupal::moduleHandler()->moduleExists('composer_manager')) {
     return array();
   }
 
@@ -29,13 +29,13 @@ function amazons3_stream_wrappers() {
     composer_manager_register_autoloader();
   }
   catch (\RuntimeException $e) {
-    watchdog('amazons3', 'The Composer autoloader could not be registered. Run drush composer-rebuild and drush composer-manager update to update your vendor directory.');
+    \Drupal::logger('amazons3')->notice('The Composer autoloader could not be registered. Run drush composer-rebuild and drush composer-manager update to update your vendor directory.', []);
     watchdog_exception('amazons3', $e);
     return array();
   }
 
   if (!class_exists('Drupal\amazons3\StreamWrapper')) {
-    watchdog('amazons3', 'The AmazonS3 StreamWrapper class is missing. Make sure all module updates have run. Otherwise, run drush composer-rebuild and drush composer-manager update to update your vendor directory.');
+    \Drupal::logger('amazons3')->notice('The AmazonS3 StreamWrapper class is missing. Make sure all module updates have run. Otherwise, run drush composer-rebuild and drush composer-manager update to update your vendor directory.', []);
     return array();
   }
 
@@ -114,12 +114,17 @@ function amazons3_image_deliver() {
   $destination = $source->getImageStyleUrl($style_name);
 
   // Check that the image style token is valid.
-  if (!variable_get('image_allow_insecure_derivatives', FALSE) || strpos($destination->getKey(), 'styles/') === 0) {
-    $valid = isset($_GET[IMAGE_DERIVATIVE_TOKEN]) && $_GET[IMAGE_DERIVATIVE_TOKEN] === image_style_path_token($style['name'], (string) $source);
-    if (!$valid) {
-      return MENU_ACCESS_DENIED;
-    }
-  }
+  // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// if (!variable_get('image_allow_insecure_derivatives', FALSE) || strpos($destination->getKey(), 'styles/') === 0) {
+//     $valid = isset($_GET[IMAGE_DERIVATIVE_TOKEN]) && $_GET[IMAGE_DERIVATIVE_TOKEN] === image_style_path_token($style['name'], (string) $source);
+//     if (!$valid) {
+//       return MENU_ACCESS_DENIED;
+//     }
+//   }
+
 
   if (!file_exists($destination)) {
     // If there is no source image we can 404 early.
@@ -127,11 +132,11 @@ function amazons3_image_deliver() {
       return MENU_NOT_FOUND;
     }
 
-    $lock_name = 'amazons3_image_style_deliver:' . drupal_hash_base64($destination->getKey());
+    $lock_name = 'amazons3_image_style_deliver:' . \Drupal\Component\Utility\Crypt::hashBase64($destination->getKey());
     $destination_temp = 'temporary://amazons3/' . $destination->getKey();
 
     // Prevent cache stampedes.
-    if (!lock_acquire($lock_name)) {
+    if (!\Drupal::lock()->acquire($lock_name)) {
       _amazons3_image_wait_transfer($destination_temp);
     }
 
@@ -146,7 +151,7 @@ function amazons3_image_deliver() {
     $file = amazons3_file_create_object($destination_temp);
     file_save($file);
 
-    lock_release($lock_name);
+    \Drupal::lock()->release($lock_name);
 
     // Register a shutdown function to upload the image to S3.
     $image = amazons3_image_load($destination_temp);
@@ -158,7 +163,7 @@ function amazons3_image_deliver() {
       // file_unmanaged_copy() will not create any nested directories if needed.
       $directory = drupal_dirname($destination);
       if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
-        watchdog('amazons3', 'Failed to create style directory: %directory', array('%directory' => $directory), WATCHDOG_ERROR);
+        \Drupal::logger('amazons3')->error('Failed to create style directory: %directory', array('%directory' => $directory));
       }
 
       file_unmanaged_copy($image->source, $destination);
@@ -170,7 +175,7 @@ function amazons3_image_deliver() {
 
   // If the file exists on S3, send a permanent redirect.
   /** @var \Drupal\amazons3\StreamWrapper $wrapper */
-  $wrapper = file_stream_wrapper_get_instance_by_uri($destination);
+  $wrapper = \Drupal::service("stream_wrapper_manager")->getViaUri($destination);
   drupal_goto($wrapper->getExternalUrl(), array(), 301);
 }
 
@@ -237,7 +242,7 @@ function _amazons3_image_wait_transfer($uri) {
 function amazons3_image_load($uri) {
   $image = image_load($uri);
   if (!$image) {
-    watchdog('amazons3', 'Unable to generate the derived image located at %path.', array('%path' => $uri));
+    \Drupal::logger('amazons3')->notice('Unable to generate the derived image located at %path.', array('%path' => $uri));
     drupal_add_http_header('Status', '500 Internal Server Error');
     drupal_add_http_header('Content-Type', 'text/html; charset=utf-8');
     print t('Error generating image.');
@@ -274,7 +279,7 @@ function amazons3_field_info_alter(&$info) {
   foreach (amazons3_file_like_field() as $type) {
     // Use the default bucket as specified in the module configuration.
     if (isset($info[$type])) {
-      $info[$type]['settings']['amazons3_bucket'] = variable_get('amazons3_bucket', '');
+      $info[$type]['settings']['amazons3_bucket'] = \Drupal::config('amazons3.settings')->get('amazons3_bucket');
     }
   }
 }
@@ -495,25 +500,28 @@ function _amazons3_field_configuration(array &$form, $type) {
 
       $settings['uri_scheme']['#weight'] = 50;
 
-      $settings['amazons3_bucket'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Amazon S3 bucket'),
-        '#description' => t(
-          'Leave blank to use the site-wide default bucket <a href="@config">currently set to %bucket</a>.',
-          array(
-            '@config' => url('admin/config/media/amazons3'),
-            '%bucket' => variable_get('amazons3_bucket', ''),
-          )
-        ),
-        '#states' => array(
-          'visible' => array(
-            ':input[name="field[settings][uri_scheme]"]' => array('value' => 's3'),
-          ),
-        ),
-        '#default_value' => $bucket_setting,
-        '#element_validate' => array('amazons3_form_bucket_validate'),
-        '#weight' => 51,
-      );
+      // @FIXME
+// url() expects a route name or an external URI.
+// $settings['amazons3_bucket'] = array(
+//         '#type' => 'textfield',
+//         '#title' => t('Amazon S3 bucket'),
+//         '#description' => t(
+//           'Leave blank to use the site-wide default bucket <a href="@config">currently set to %bucket</a>.',
+//           array(
+//             '@config' => url('admin/config/media/amazons3'),
+//             '%bucket' => variable_get('amazons3_bucket', ''),
+//           )
+//         ),
+//         '#states' => array(
+//           'visible' => array(
+//             ':input[name="field[settings][uri_scheme]"]' => array('value' => 's3'),
+//           ),
+//         ),
+//         '#default_value' => $bucket_setting,
+//         '#element_validate' => array('amazons3_form_bucket_validate'),
+//         '#weight' => 51,
+//       );
+
     }
   }
 }
@@ -535,7 +543,11 @@ function amazons3_form_bucket_validate(array &$element, array &$form_state, arra
   }
 
   if (!isset($form_state['values']['amazons3_hostname'])) {
-    $hostname = variable_get('amazons3_hostname');
+    // @FIXME
+// Could not extract the default value because it is either indeterminate, or
+// not scalar. You'll need to provide a default value in
+// config/install/amazons3.settings.yml and config/schema/amazons3.schema.yml.
+$hostname = \Drupal::config('amazons3.settings')->get('amazons3_hostname');
   }
   else {
     $hostname = $form_state['values']['amazons3_hostname'];
@@ -577,7 +589,7 @@ function amazons3_form_bucket_validate(array &$element, array &$form_state, arra
  * @endcode
  */
 function amazons3_field_default_field_bases_alter(&$fields) {
-  if ($uri_scheme = variable_get('amazons3_file_uri_scheme_override', FALSE)) {
+  if ($uri_scheme = \Drupal::config('amazons3.settings')->get('amazons3_file_uri_scheme_override')) {
     foreach ($fields as $key => $item) {
       if (isset($item['settings']['uri_scheme'])) {
         $fields[$key]['settings']['uri_scheme'] = $uri_scheme;

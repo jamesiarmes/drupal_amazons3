@@ -65,14 +65,19 @@ trait Common {
       if ($options['query']) {
         $path .= (strpos($path, '?') !== FALSE ? '&' : '?') . drupal_http_build_query($options['query']);
       }
-      if (isset($options['https']) && variable_get('https', FALSE)) {
-        if ($options['https'] === TRUE) {
-          $path = str_replace('http://', 'https://', $path);
-        }
-        elseif ($options['https'] === FALSE) {
-          $path = str_replace('https://', 'http://', $path);
-        }
-      }
+      // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// if (isset($options['https']) && variable_get('https', FALSE)) {
+//         if ($options['https'] === TRUE) {
+//           $path = str_replace('http://', 'https://', $path);
+//         }
+//         elseif ($options['https'] === FALSE) {
+//           $path = str_replace('https://', 'http://', $path);
+//         }
+//       }
+
       // Reassemble.
       return $path . $options['fragment'];
     }

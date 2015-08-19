@@ -9,7 +9,7 @@
  * Implements hook_requirements().
  */
 function amazons3_requirements($phase) {
-  $t = get_t();
+  $t = 't';
   $requirements = array();
 
   if ($phase != 'runtime') {
@@ -37,7 +37,10 @@ function amazons3_requirements($phase) {
   }
 
   if ($error) {
-    $configure = l($t('Configure'), 'admin/config/media/amazons3');
+    // @FIXME
+// l() expects a Url object, created from a route name or external URI.
+// $configure = l($t('Configure'), 'admin/config/media/amazons3');
+
     $requirements['amazons3_connection'] = array(
       'severity' => REQUIREMENT_ERROR,
       'title' => $t('AmazonS3 Configuration'),
@@ -53,18 +56,18 @@ function amazons3_requirements($phase) {
  * Implements hook_uninstall().
  */
 function amazons3_uninstall() {
-  variable_del('amazons3_key');
-  variable_del('amazons3_secret');
-  variable_del('amazons3_bucket');
-  variable_del('amazons3_cname');
-  variable_del('amazons3_domain');
-  variable_del('amazons3_cache');
-  variable_del('amazons3_cache_expiration');
-  variable_del('amazons3_torrents');
-  variable_del('amazons3_presigned_urls');
-  variable_del('amazons3_saveas');
-  variable_del('amazons3_rrs');
-  variable_del('amazons3_hostname');
+  \Drupal::config('amazons3.settings')->clear('amazons3_key')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_secret')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_bucket')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_cname')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_domain')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_cache')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_cache_expiration')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_torrents')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_presigned_urls')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_saveas')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_rrs')->save();
+  \Drupal::config('amazons3.settings')->clear('amazons3_hostname')->save();
 }
 
 /**
@@ -179,7 +182,11 @@ function amazons3_update_7200() {
     drush_composer_manager_write_if_changed();
   }
 
-  $bucket = variable_get('amazons3_bucket');
+  // @FIXME
+// Could not extract the default value because it is either indeterminate, or
+// not scalar. You'll need to provide a default value in
+// config/install/amazons3.settings.yml and config/schema/amazons3.schema.yml.
+$bucket = \Drupal::config('amazons3.settings')->get('amazons3_bucket');
   db_update('file_managed')
     ->condition('uri', 's3://%', 'LIKE')
     ->expression('uri', 'REPLACE(uri, :protocol, :bucket)', array(
@@ -188,25 +195,35 @@ function amazons3_update_7200() {
     ))
     ->execute();
 
-  variable_del('amazons3_https');
+  \Drupal::config('amazons3.settings')->clear('amazons3_https')->save();
 }
 
 /**
  * Copy Amazon keys in the database from awssdk 1.x.
  */
 function amazons3_update_7201() {
-  $t = get_t();
+  $t = 't';
   drupal_set_message($t('AmazonS3 no longer requires the AWS SDK module.'));
   drupal_set_message($t('If your API keys are in settings.php, they will need to be renamed to amazons3_key and amazons3_secret. To avoid writing these values to the database, set amazons3_migrate_credentials to FALSE in settings.php.'));
 
-  if (variable_get('amazons3_migrate_credentials', TRUE)) {
-    if ($key = variable_get('aws_key', FALSE)) {
-      variable_set('amazons3_key', $key);
-    }
+  if (\Drupal::config('amazons3.settings')->get('amazons3_migrate_credentials')) {
+    // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// if ($key = variable_get('aws_key', FALSE)) {
+//       variable_set('amazons3_key', $key);
+//     }
 
-    if ($secret = variable_get('aws_secret', FALSE)) {
-      variable_set('amazons3_secret', $secret);
-    }
+
+    // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// if ($secret = variable_get('aws_secret', FALSE)) {
+//       variable_set('amazons3_secret', $secret);
+//     }
+
 
     drupal_set_message($t('Credentials have been migrated to AmazonS3 variables.'));
   }
@@ -236,12 +253,22 @@ function amazons3_update_7203() {
   );
 
   foreach ($variables as $name) {
-    $value = variable_get($name, array());
+    // @FIXME
+// // @FIXME
+// // The correct configuration object could not be determined. You'll need to
+// // rewrite this call manually.
+// $value = variable_get($name, array());
+
     if (is_string($value)) {
       $value = explode("\n", $value);
       $value = array_map('trim', $value);
       $value = array_filter($value, 'strlen');
-      variable_set($name, $value);
+      // @FIXME
+// // @FIXME
+// // The correct configuration object could not be determined. You'll need to
+// // rewrite this call manually.
+// variable_set($name, $value);
+
     }
   }
 }
@@ -250,7 +277,11 @@ function amazons3_update_7203() {
  * Convert presigned URLs to structured arrays.
  */
 function amazons3_update_7204() {
-  $lines = variable_get('amazons3_presigned_urls', array());
+  // @FIXME
+// Could not extract the default value because it is either indeterminate, or
+// not scalar. You'll need to provide a default value in
+// config/install/amazons3.settings.yml and config/schema/amazons3.schema.yml.
+$lines = \Drupal::config('amazons3.settings')->get('amazons3_presigned_urls');
   if (empty($lines)) {
     return;
   }
@@ -264,5 +295,5 @@ function amazons3_update_7204() {
     );
   }
 
-  variable_set('amazons3_presigned_urls', $config);
+  \Drupal::config('amazons3.settings')->set('amazons3_presigned_urls', $config)->save();
 }

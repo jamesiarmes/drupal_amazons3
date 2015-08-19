@@ -302,7 +302,7 @@ class StreamWrapperConfiguration extends Collection {
   /**
    * Set the cache expiration.
    *
-   * This method must only be called if caching is enabled. Use CACHE_PERMANENT
+   * This method must only be called if caching is enabled. Use \Drupal\Core\Cache\Cache::PERMANENT
    * to cache with no expiration.
    *
    * @param int $expiration
