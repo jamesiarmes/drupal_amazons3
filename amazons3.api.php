@@ -59,7 +59,7 @@ function hook_amazons3_command_prepare_alter(&$name, &$args) {
 function hook_amazons3_command_alter(\Guzzle\Service\Command\CommandInterface $command) {
   if ($command->getName('HeadObject')) {
     $command->setOnComplete(function() {
-      watchdog('amazons3', 'HeadObject was called.');
+      \Drupal::logger('amazons3')->notice('HeadObject was called.', []);
     });
   }
 }

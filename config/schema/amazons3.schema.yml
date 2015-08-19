@@ -1,0 +1,28 @@
+amazons3.settings:
+  type: mapping
+  label: Settings
+  mapping:
+    amazons3_bucket:
+      type: string
+    amazons3_file_uri_scheme_override:
+      type: boolean
+    amazons3_key:
+      type: string
+    amazons3_secret:
+      type: string
+    amazons3_cache:
+      type: boolean
+    amazons3_cname:
+      type: integer
+    amazons3_domain:
+      type: string
+    amazons3_cloudfront:
+      type: integer
+    amazons3_hostname:
+      type: string
+    amazons3_cloudfront_keypair_id:
+      type: boolean
+    amazons3_cloudfront_private_key:
+      type: boolean
+    amazons3_migrate_credentials:
+      type: boolean

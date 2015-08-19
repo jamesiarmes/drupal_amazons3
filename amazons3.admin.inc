@@ -9,21 +9,21 @@ function amazons3_admin() {
   $form['amazons3_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Amazon S3 API Key'),
-    '#default_value' => variable_get('amazons3_key', ''),
+    '#default_value' => \Drupal::config('amazons3.settings')->get('amazons3_key'),
     '#required' => TRUE,
   );
 
   $form['amazons3_secret'] = array(
     '#type' => 'textfield',
     '#title' => t('Amazon S3 API Secret'),
-    '#default_value' => variable_get('amazons3_secret', ''),
+    '#default_value' => \Drupal::config('amazons3.settings')->get('amazons3_secret'),
     '#required' => TRUE,
   );
 
   $form['amazons3_bucket'] = array(
     '#type' => 'textfield',
     '#title' => t('Default Bucket Name'),
-    '#default_value' => variable_get('amazons3_bucket', ''),
+    '#default_value' => \Drupal::config('amazons3.settings')->get('amazons3_bucket'),
     '#required' => TRUE,
     '#element_validate' => array('amazons3_form_bucket_validate'),
   );
@@ -32,12 +32,16 @@ function amazons3_admin() {
     '#type' => 'checkbox',
     '#title' => t('Enable metadata caching'),
     '#description' => t('Enable a local file metadata cache to reduce calls to S3.'),
-    '#default_value' => variable_get('amazons3_cache', TRUE),
+    '#default_value' => \Drupal::config('amazons3.settings')->get('amazons3_cache'),
   );
 
-  $expiration = variable_get('amazons3_cache_expiration', CACHE_PERMANENT);
+  // @FIXME
+// Could not extract the default value because it is either indeterminate, or
+// not scalar. You'll need to provide a default value in
+// config/install/amazons3.settings.yml and config/schema/amazons3.schema.yml.
+$expiration = \Drupal::config('amazons3.settings')->get('amazons3_cache_expiration');
 
-  $period = drupal_map_assoc(array(0, 60, 180, 300, 600, 900, 1800, 2700, 3600, 10800, 21600, 32400, 43200, 86400), 'format_interval');
+  $period = array_combine(array(0, 60, 180, 300, 600, 900, 1800, 2700, 3600, 10800, 21600, 32400, 43200, 86400), 'format_interval', array(0, 60, 180, 300, 600, 900, 1800, 2700, 3600, 10800, 21600, 32400, 43200, 86400));
   $period[0] = '<' . t('none') . '>';
   $form['amazons3_cache_expiration'] = array(
     '#type' => 'select',
@@ -56,14 +60,14 @@ function amazons3_admin() {
     '#type' => 'checkbox',
     '#title' => t('Enable CNAME'),
     '#description' => t('Serve files from a custom domain by using an appropriately named bucket e.g. "mybucket.mydomain.com"'),
-    '#default_value' => variable_get('amazons3_cname', 0),
+    '#default_value' => \Drupal::config('amazons3.settings')->get('amazons3_cname'),
   );
 
   $form['amazons3_domain'] = array(
     '#type' => 'textfield',
     '#title' => t('CDN Domain Name'),
     '#description' => t('If serving files from CloudFront then the bucket name can differ from the domain name.'),
-    '#default_value' => variable_get('amazons3_domain', ''),
+    '#default_value' => \Drupal::config('amazons3.settings')->get('amazons3_domain'),
     '#states' => array(
       'visible' => array(
         ':input[id=edit-amazons3-cname]' => array('checked' => TRUE),
@@ -75,7 +79,7 @@ function amazons3_admin() {
     '#type' => 'checkbox',
     '#title' => t('Enable CloudFront'),
     '#description' => t('Deliver URLs through a CloudFront domain when using presigned URLs. This requires additional settings.php configuation. See README.md for details. Note that CloudFront URLs do not support other configuration options like Force Save As or Torrents, but they do support presigned URLs.'),
-    '#default_value' => variable_get('amazons3_cloudfront', 0),
+    '#default_value' => \Drupal::config('amazons3.settings')->get('amazons3_cloudfront'),
     '#states' => array(
       'visible' => array(
         ':input[id=edit-amazons3-cname]' => array('checked' => TRUE),
@@ -87,7 +91,7 @@ function amazons3_admin() {
     '#type' => 'textfield',
     '#title' => t('Custom Hostname'),
     '#description' => t('For use with an alternative API compatible service e.g. <a href="@cloud">Google Cloud Storage</a>', array('@cloud' => 'https://cloud.google.com/storage‎')),
-    '#default_value' => variable_get('amazons3_hostname', ''),
+    '#default_value' => \Drupal::config('amazons3.settings')->get('amazons3_hostname'),
   );
 
   $form['amazons3_torrents'] = array(
@@ -135,8 +139,8 @@ function amazons3_admin_validate($form, &$form_state) {
   $cloudfront = $form_state['values']['amazons3_cloudfront'];
 
   if ($cloudfront) {
-    $keypair = variable_get('amazons3_cloudfront_keypair_id', FALSE);
-    $pem = variable_get('amazons3_cloudfront_private_key', FALSE);
+    $keypair = \Drupal::config('amazons3.settings')->get('amazons3_cloudfront_keypair_id');
+    $pem = \Drupal::config('amazons3.settings')->get('amazons3_cloudfront_private_key');
     if (empty($keypair) || empty($pem)) {
       form_set_error('amazons3_cloudfront', t('You must configure your CloudFront credentials in settings.php.'));
     }
@@ -191,11 +195,21 @@ function _amazons3_explode_list($form, &$form_state) {
 function _amazons3_implode($name) {
   if ($name == 'amazons3_presigned_urls') {
     $lines = array();
-    foreach (variable_get($name, array()) as $config) {
-      $lines[] = $config['timeout'] . '|' . $config['pattern'];
-    }
+    // @FIXME
+// // @FIXME
+// // The correct configuration object could not be determined. You'll need to
+// // rewrite this call manually.
+// foreach (variable_get($name, array()) as $config) {
+//       $lines[] = $config['timeout'] . '|' . $config['pattern'];
+//     }
+
     return implode("\n", $lines);
   }
 
-  return implode("\n", variable_get($name, array()));
+  // @FIXME
+// // @FIXME
+// // The correct configuration object could not be determined. You'll need to
+// // rewrite this call manually.
+// return implode("\n", variable_get($name, array()));
+
 }

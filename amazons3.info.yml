@@ -1,0 +1,8 @@
+name: AmazonS3
+description: 'Provides S3 integration with Drupal''s file system.'
+package: 'Amazon S3'
+core: 8.x
+php: '5.4'
+dependencies:
+  - composer_manager
+type: module

@@ -16,7 +16,7 @@ trait FileMimetypes {
    */
   public static function file_mimetype_mapping() {
     /** @noinspection PhpIncludeInspection */
-    include_once DRUPAL_ROOT . '/includes/file.mimetypes.inc';
+    include_once \Drupal::root() . '/includes/file.mimetypes.inc';
     return file_mimetype_mapping();
   }
 }

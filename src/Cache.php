@@ -15,7 +15,7 @@ class Cache extends DrupalDoctrineCache {
   /**
    * @const Represent a permanent cache item.
    */
-  const CACHE_PERMANENT = 0;
+  const \Drupal\Core\Cache\Cache::PERMANENT = 0;
 
   /**
    * Override __construct() to set the cache bin.

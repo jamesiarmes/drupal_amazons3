@@ -17,6 +17,11 @@ trait Bootstrap {
    * @return null
    */
   public static function variable_get($name, $default = NULL) {
-    return variable_get($name, $default);
+    // @FIXME
+// // @FIXME
+// // The correct configuration object could not be determined. You'll need to
+// // rewrite this call manually.
+// return variable_get($name, $default);
+
   }
 }
