@@ -11,6 +11,7 @@ use \Drupal\amazons3\Exception\S3ConnectValidationException;
 use \Drupal\amazons3\S3Client;
 use \Drupal\amazons3\S3Url;
 
+use \Drupal\field\Entity\FieldConfig;
 use \Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -313,7 +314,7 @@ function amazons3_file_like_field() {
  * Override file fields to use our destination function to determine the
  * upload location for a file.
  */
-function amazons3_field_widget_form_alter(&$element, &$form_state, $context) {
+function amazons3_field_widget_form_alter(&$element, FormStateInterface $form_state, $context) {
   $field = $context['field'];
   $instance = $context['instance'];
   $delta = $context['delta'];
@@ -387,9 +388,9 @@ function amazons3_upload_location($uri_scheme, $bucket = NULL, $file_directory =
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function amazons3_form_field_ui_field_settings_form_alter(&$form, &$form_state, $form_id) {
-  $type = $form['field']['type']['#value'];
-  _amazons3_field_configuration($form, $type);
+function amazons3_form_field_storage_config_edit_form_alter(array &$form, FormStateInterface &$form_state, $form_id) {
+  $field = $form_state->getStorage()['field_config'];
+  _amazons3_field_configuration($form, $field);
 }
 
 /**
@@ -479,45 +480,40 @@ function amazons3_uri_add_bucket($target) {
 }
 
 /**
- * Add S3 configuration to file field settings forms.
+ * Add S3 configuration to supported field settings forms.
  *
  * @param array &$form
  *   The form to alter.
- * @param string $type
- *   The field type being modified.
+ * @param \Drupal\field\Entity\FieldConfig $field
+ *   The field being configured.
+ *
+ * @ported
  */
-function _amazons3_field_configuration(array &$form, $type) {
-  foreach (amazons3_file_like_field() as $types) {
-    if ($type == $types) {
-      $settings = &$form['field']['settings'];
-      $bucket_setting = isset($form['#field']['settings']['amazons3_bucket']) ? $form['#field']['settings']['amazons3_bucket'] : '';
-
-      $settings['uri_scheme']['#weight'] = 50;
-
-      // @FIXME
-// url() expects a route name or an external URI.
-// $settings['amazons3_bucket'] = array(
-//         '#type' => 'textfield',
-//         '#title' => t('Amazon S3 bucket'),
-//         '#description' => t(
-//           'Leave blank to use the site-wide default bucket <a href="@config">currently set to %bucket</a>.',
-//           array(
-//             '@config' => url('admin/config/media/amazons3'),
-//             '%bucket' => variable_get('amazons3_bucket', ''),
-//           )
-//         ),
-//         '#states' => array(
-//           'visible' => array(
-//             ':input[name="field[settings][uri_scheme]"]' => array('value' => 's3'),
-//           ),
-//         ),
-//         '#default_value' => $bucket_setting,
-//         '#element_validate' => array('amazons3_form_bucket_validate'),
-//         '#weight' => 51,
-//       );
-
-    }
+function _amazons3_field_configuration(array &$form, FieldConfig $field) {
+  if (!in_array($field->getType(), amazons3_file_like_field())) {
+    return;
   }
+
+  $form['settings']['uri_scheme']['#weight'] = 50;
+  $form['settings']['amazons3_bucket'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Amazon S3 bucket'),
+    '#description' => t(
+      'Leave blank to use the site-wide default bucket <a href="@config">currently set to %bucket</a>.',
+      array(
+        '@config' => \Drupal::url('amazons3.config'),
+        '%bucket' => \Drupal::config('amazons3.settings')->get('amazons3_bucket'),
+      )
+    ),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="field[settings][uri_scheme]"]' => array('value' => 's3'),
+      ),
+    ),
+    '#default_value' => $field->getSetting('amazons3_bucket'),
+    '#element_validate' => array('amazons3_form_bucket_validate'),
+    '#weight' => 51,
+  );
 }
 
 /**
