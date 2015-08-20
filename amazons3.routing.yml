@@ -1,0 +1,7 @@
+amazons3.config:
+  path: '/admin/config/media/amazons3'
+  defaults:
+    _form: '\Drupal\amazons3\Form\Config'
+    _title: 'Amazon S3'
+  requirements:
+    _permission: 'administer amazons3'

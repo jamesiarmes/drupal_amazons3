@@ -1,14 +1,17 @@
 <?php
-
-use Aws\Common\Credentials\Credentials;
-use Drupal\amazons3\Exception\S3ConnectValidationException;
-use Drupal\amazons3\S3Client;
-use Drupal\amazons3\S3Url;
-
 /**
  * @file
- * Hook implementations for the AmazonS3 module.
+ * Hook implementations for the Amazon S3 module.
  */
+
+use \Aws\Credentials\Credentials;
+use \Aws\S3\S3Client as AwsS3Client;
+
+use \Drupal\amazons3\Exception\S3ConnectValidationException;
+use \Drupal\amazons3\S3Client;
+use \Drupal\amazons3\S3Url;
+
+use \Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_stream_wrappers().
@@ -56,15 +59,6 @@ function amazons3_stream_wrappers() {
  */
 function amazons3_menu() {
   $items = array();
-
-  $items['admin/config/media/amazons3'] = array(
-    'title' => 'Amazon S3',
-    'description' => 'Configure S3 credentials and settings',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('amazons3_admin'),
-    'access arguments' => array('administer amazons3'),
-    'file' => 'amazons3.admin.inc',
-  );
 
   // hook_menu is called after this module is enabled, but before Composer
   // dependencies are enabled. This menu callback string should always match
@@ -529,50 +523,53 @@ function _amazons3_field_configuration(array &$form, $type) {
 /**
  * Element validate callback to validate a bucket name.
  *
- * @param array &$element
+ * @param array $element
  *   The element to validate.
- * @param array &$form_state
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The current state of the form.
  * @param array $form
  *   The current form.
+ *
+ * @ported
  */
-function amazons3_form_bucket_validate(array &$element, array &$form_state, array $form) {
+function amazons3_form_bucket_validate(array &$element, FormStateInterface &$form_state, array $form) {
   $bucket = $element['#value'];
   if (empty($bucket)) {
     return;
   }
 
-  if (!isset($form_state['values']['amazons3_hostname'])) {
-    // @FIXME
-// Could not extract the default value because it is either indeterminate, or
-// not scalar. You'll need to provide a default value in
-// config/install/amazons3.settings.yml and config/schema/amazons3.schema.yml.
-$hostname = \Drupal::config('amazons3.settings')->get('amazons3_hostname');
+  $hostname = $form_state->getValue('amazons3_hostname');
+  if (empty($hostname)) {
+    $hostname = \Drupal::config('amazons3.settings')->get('amazons3_hostname');
   }
-  else {
-    $hostname = $form_state['values']['amazons3_hostname'];
-  }
+
+  // Read credentials from the form.
+  $key = $form_state->getValue('amazons3_key');
+  $secret = $form_state->getValue('amazons3_secret');
 
   // Inject our credentials for testing.
   $config = array();
-  if (isset($form_state['values']['amazons3_key']) && isset($form_state['values']['amazons3_secret'])) {
-    $config['credentials'] = new Credentials($form_state['values']['amazons3_key'], $form_state['values']['amazons3_secret']);
+  if (!empty($key) && !empty($secret)) {
+    $config['credentials'] = new Credentials($key, $secret);
   }
 
   if (!empty($hostname)) {
     $config['endpoint'] = $hostname;
   }
 
+  // TODO: Convert this to a setting.
+  $config['region'] = 'us-east-1';
+  $config['version'] = '2006-03-01';
+
   try {
-    $s3 = S3Client::factory($config);
-    S3Client::validateBucketExists($bucket, $s3);
-  }
-  catch (S3ConnectValidationException $e) {
-    form_error($element, t('The S3 access credentials are invalid or the bucket does not exist.'));
-    watchdog_exception('amazons3', $e);
+    $client = new AwsS3Client($config);
+    if (!$client->doesBucketExist($bucket)) {
+      $form_state->setError($element, t('The S3 access credentials are invalid or the bucket does not exist.'));
+      watchdog_exception('amazons3', $e);
+    }
   }
   catch (Exception $e) {
-    form_error($element, t('There was a problem connecting to S3. The following exception was thrown: @exception', array('@exception' => $e->getMessage())));
+    $form_state->setError($element, t('There was a problem connecting to S3. The following exception was thrown: @exception', array('@exception' => $e->getMessage())));
     watchdog_exception('amazons3', $e);
   }
 }
