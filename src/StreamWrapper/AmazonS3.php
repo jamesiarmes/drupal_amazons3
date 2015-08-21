@@ -1,34 +1,39 @@
 <?php
+
 /**
  * @file
- * Contains \Drupal\amazons3\StreamWrapper\AmazonS3
+ * Contains \Drupal\amazons3\StreamWrapper\AmazonS3.
  */
 
 namespace Drupal\amazons3\StreamWrapper;
 
+use Drupal\amazons3\Cache;
 use Drupal\amazons3\Config;
-use \Drupal\amazons3\S3Url;
+use Drupal\amazons3\DrupalAdapter\Common;
+use Drupal\amazons3\DrupalAdapter\FileMimetypes;
+use Drupal\amazons3\Matchable\BasicPath;
+use Drupal\amazons3\Matchable\PresignedPath;
+use Drupal\amazons3\S3Url;
+use Drupal\amazons3\StreamWrapperConfiguration;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 
-use \Drupal\Core\StreamWrapper\StreamWrapperInterface;
-use \Doctrine\Common\Cache\ArrayCache;
-use \Doctrine\Common\Cache\ChainCache;
-use \Drupal\amazons3\Matchable\BasicPath;
-use \Drupal\amazons3\Matchable\PresignedPath;
-use \Guzzle\Cache\DoctrineCacheAdapter;
+use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Cache\ChainCache;
 
-use \Aws\S3\S3Client;
-use \Aws\CacheInterface;
-use \Aws\Credentials\Credentials;
+use Guzzle\Cache\DoctrineCacheAdapter;
+use Guzzle\Http\Url;
 
-use \Guzzle\Http\Url;
+use Aws\CacheInterface;
+use Aws\S3\StreamWrapper;
+use Aws\S3\S3Client;
 
 /**
  * ImplementsStreamWrapperInterface to provide an Amazon S3 wrapper with the
  * s3:// prefix.
  */
-class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
-  use \Drupal\amazons3\DrupalAdapter\Common;
-  use \Drupal\amazons3\DrupalAdapter\FileMimetypes;
+class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
+  use Common;
+  use FileMimetypes;
 
   /**
    * The base domain of S3.
@@ -68,7 +73,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
   /**
    * Configuration for this stream wrapper.
    *
-   * @var \Drupal\amazons3\Config
+   * @var \Drupal\amazons3\StreamWrapperConfiguration
    */
   protected $config;
 
@@ -724,4 +729,5 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
   {
     // TODO: Implement stream_truncate() method.
   }
+
 }

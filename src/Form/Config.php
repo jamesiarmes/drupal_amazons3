@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains \Drupal\amazons3\Form\Config.
@@ -13,6 +14,7 @@ use Drupal\Core\Form\FormStateInterface;
  * Configuration form for a site's Amazon S3 settings.
  */
 class Config extends ConfigFormBase {
+
   /**
    * {@inheritdoc}
    */
@@ -199,7 +201,7 @@ class Config extends ConfigFormBase {
       ->set('presigned_urls', $this->explode('presigned_urls', $form_state))
       ->save();
 
-    return parent::submitForm($form, $form_state);
+    parent::submitForm($form, $form_state);
   }
 
   /**
@@ -264,4 +266,5 @@ class Config extends ConfigFormBase {
   protected function getEditableConfigNames() {
     return array('amazons3.settings');
   }
+
 }

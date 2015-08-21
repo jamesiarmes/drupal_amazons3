@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\Matchable\MatchableRegex.
+ */
+
 namespace Drupal\amazons3\Matchable;
 
 /**
@@ -30,4 +35,5 @@ trait MatchableRegex {
    * @return string
    */
   abstract public function __toString();
+
 }

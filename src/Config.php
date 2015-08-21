@@ -1,9 +1,8 @@
 <?php
+
 /**
- * Created by IntelliJ IDEA.
- * User: jarmes
- * Date: 8/20/15
- * Time: 6:21 PM
+ * @file
+ * Contains \Drupal\amazons3\Config.
  */
 
 namespace Drupal\amazons3;
@@ -14,6 +13,7 @@ use Drupal\amazons3\Matchable\MatchablePaths;
 use Drupal\amazons3\Matchable\PresignedPath;
 
 class Config extends \ArrayObject {
+
   /**
    * Amazon S3 API version.
    *
@@ -190,6 +190,7 @@ class Config extends \ArrayObject {
    *
    * @param string $name
    *   Name of the setting to retrieve.
+   * @param mixed $default
    *
    * @return mixed
    *   Value of the setting or the default value if it was not set.
@@ -233,4 +234,5 @@ class Config extends \ArrayObject {
 
     return $this->$key;
   }
+
 }

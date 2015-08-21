@@ -1,6 +1,13 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\DrupalAdapter\Common.
+ */
+
 namespace Drupal\amazons3\DrupalAdapter;
+
+use Drupal\Component\Utility\UrlHelper;
 
 /**
  * Methods that map to includes/common.inc.
@@ -28,6 +35,7 @@ trait Common {
    * @return mixed
    */
   public static function drupal_encode_path($path) {
-    return \Drupal\Component\Utility\UrlHelper::encodePath($path);
+    return UrlHelper::encodePath($path);
   }
+
 }

@@ -1,12 +1,20 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\CloudFrontClient.
+ */
+
 namespace Drupal\amazons3;
+
+use Aws\CloudFront\CloudFrontClient as AwsCloudFrontClient;
 
 /**
  * @class CloudFrontClient
  * @package Drupal\amazons3
  */
-class CloudFrontClient extends \Aws\CloudFront\CloudFrontClient {
+class CloudFrontClient extends AwsCloudFrontClient {
+
   use DrupalAdapter\Bootstrap;
 
   /**

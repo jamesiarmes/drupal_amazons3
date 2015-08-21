@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\Matchable\MatchablePaths.
+ */
+
 namespace Drupal\amazons3\Matchable;
 
 /**
@@ -48,4 +53,5 @@ class MatchablePaths implements Matchable {
   public function __toString() {
     return implode('|', $this->paths);
   }
+
 }

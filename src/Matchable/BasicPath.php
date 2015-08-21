@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\Matchable\BasicPath.
+ */
+
 namespace Drupal\amazons3\Matchable;
 
 /**
@@ -9,6 +14,7 @@ namespace Drupal\amazons3\Matchable;
  * @package Drupal\amazons3\Matchable
  */
 class BasicPath implements Matchable {
+
   use MatchableRegex;
 
   /**
@@ -65,4 +71,5 @@ class BasicPath implements Matchable {
   function __toString() {
     return $this->pattern;
   }
+
 }

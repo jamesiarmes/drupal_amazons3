@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\Matchable\PresignedPath.
+ */
+
 namespace Drupal\amazons3\Matchable;
 
 /**
@@ -55,4 +60,5 @@ class PresignedPath extends BasicPath {
   public function getTimeout() {
     return $this->timeout;
   }
+
 }
