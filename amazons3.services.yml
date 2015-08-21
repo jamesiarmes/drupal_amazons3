@@ -1,4 +1,8 @@
 services:
+  path_processor.s3_image_styles:
+    class: Drupal\amazons3\PathProcessor\PathProcessorS3ImageStyles
+    tags:
+      - { name: path_processor_inbound, priority: 300 }
   stream_wrapper.s3:
     class: Drupal\amazons3\StreamWrapper\AmazonS3
     tags:

@@ -44,7 +44,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    *
    * @const string
    */
-  const stylesCallback = 'amazons3/image-derivative';
+  const stylesCallback = 'amazons3';
 
   /**
    * The name of the S3Client class to use.

@@ -5,3 +5,9 @@ amazons3.config:
     _title: 'Amazon S3'
   requirements:
     _permission: 'administer amazons3'
+amazons3.image_style:
+  path: '/amazons3/{amazons3_bucket}/styles/{image_style}'
+  defaults:
+    _controller:  '\Drupal\amazons3\Controller\S3ImageStyleDownloadController::deliver'
+  requirements:
+    _permission: 'TRUE'
