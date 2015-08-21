@@ -121,23 +121,15 @@ class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
   /**
    * Construct a new stream wrapper.
    *
-   * @param \Drupal\amazons3\StreamWrapperConfiguration $config
+   * @param \Drupal\amazons3\Config $config
    *   (optional) A specific configuration to use for this wrapper.
    */
-  public function __construct(StreamWrapperConfiguration $config = NULL) {
+  public function __construct(Config $config = NULL) {
     if (!$config) {
-      if (static::$defaultConfig) {
-        $config = static::$defaultConfig;
-      }
-      else {
-        // @codeCoverageIgnoreStartStreamWrapperConfiguration
-        $config = new Config();
-        // @codeCoverageIgnoreEnd
-      }
+      $config = new Config();
     }
 
-    // TODO: Accept the proper object.
-    $this->config = new Config();
+    $this->config = $config;
 
     if (!$this->getClient()) {
       /** @var S3Client $name */
@@ -378,6 +370,8 @@ class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
    * Override getOptions() to default all files to be publicly readable.
    *
    * {@inheritdoc}
+   *
+   * @todo Gather and set options appropriately.
    */
   public function getOptions($removeContextData = false) {
     if (!isset($this->uri)) {
