@@ -2,11 +2,12 @@
 
 namespace Drupal\amazons3;
 
-use Drupal\amazons3\DrupalAdapter\Bootstrap;
-use Drupal\amazons3\Matchable\BasicPath;
-use Drupal\amazons3\Matchable\MatchablePaths;
-use Drupal\amazons3\Matchable\PresignedPath;
-use Guzzle\Common\Collection;
+use \Drupal\amazons3\StreamWrapper\AmazonS3;
+use \Drupal\amazons3\DrupalAdapter\Bootstrap;
+use \Drupal\amazons3\Matchable\BasicPath;
+use \Drupal\amazons3\Matchable\MatchablePaths;
+use \Drupal\amazons3\Matchable\PresignedPath;
+use \Guzzle\Common\Collection;
 
 /**
  * Class to manage S3 stream wrapper configuration.
@@ -25,8 +26,6 @@ use Guzzle\Common\Collection;
  * @package Drupal\amazons3
  */
 class StreamWrapperConfiguration extends Collection {
-  use Bootstrap;
-
   /**
    * Generate a configuration object from an array.
    *
@@ -108,7 +107,7 @@ class StreamWrapperConfiguration extends Collection {
    *   The S3 domain, such as bucket.s3.amazonaws.com.
    */
   protected static function getS3Domain($bucket) {
-    $domain = StreamWrapper::S3_API_DOMAIN;
+    $domain = AmazonS3::S3_API_DOMAIN;
     // If the bucket does not contain dots, the S3 SDK generates URLs that
     // use the bucket name in the host.
     if (strpos($bucket, '.') === FALSE) {
@@ -344,23 +343,28 @@ class StreamWrapperConfiguration extends Collection {
    *   A StreamWrapperConfiguration object.
    */
   public static function fromDrupalVariables() {
-    $config = self::fromConfig(array('bucket' => static::variable_get('amazons3_bucket', NULL)));
+    $drupal_config = new Config();
+
+    $config = array();
+    $config['bucket'] = $drupal_config->get('amazons3_bucket');
+    $config = self::FromConfig($config);
     $defaults = $config->defaults();
 
-    $config->setHostname(static::variable_get('amazons3_hostname', $defaults['hostname']));
+    $config->setHostname($drupal_config->get('amazons3_hostname', $defaults['hostname']));
 
     // CNAME support for customizing S3 URLs.
-    if (static::variable_get('amazons3_cname', FALSE)) {
-      $domain = static::variable_get('amazons3_domain', $defaults['domain']);
+    if ($drupal_config->get('amazons3_cname', FALSE)) {
+      $domain = $drupal_config->get('amazons3_domain', $defaults['domain']);
+      $domain =$drupal_config->get('amazons3_domain', $defaults['domain']);
       if (strlen($domain) > 0) {
         $config->setDomain($domain);
       }
       else {
         $config->setDomain($config->getBucket());
       }
-      if (static::variable_get('amazons3_cloudfront', $defaults['cloudFront'])) {
-        $path = static::variable_get('amazons3_cloudfront_private_key', $defaults['cloudFrontPrivateKey']);
-        $keyPairId = static::variable_get('amazons3_cloudfront_keypair_id', $defaults['cloudFrontKeyPairId']);
+      if ($drupal_config->get('amazons3_cloudfront', $defaults['cloudFront'])) {
+        $path = $drupal_config->get('amazons3_cloudfront_private_key', $defaults['cloudFrontPrivateKey']);
+        $keyPairId = $drupal_config->get('amazons3_cloudfront_keypair_id', $defaults['cloudFrontKeyPairId']);
         $config->setCloudFrontCredentials($path, $keyPairId);
         $config->serveWithCloudFront();
       }
@@ -370,23 +374,23 @@ class StreamWrapperConfiguration extends Collection {
     }
 
     // Check whether local file caching is turned on.
-    if (static::variable_get('amazons3_cache', $defaults['caching'])) {
+    if ($drupal_config->get('amazons3_cache', $defaults['caching'])) {
       $config->enableCaching();
-      $config->setCacheLifetime(static::variable_get('amazons3_cache_expiration', NULL));
+      $config->setCacheLifetime($drupal_config->get('amazons3_cache_expiration'));
     }
     else {
       $config->disableCaching();
     }
 
     // Torrent list.
-    $torrentPaths = static::variable_get('amazons3_torrents', array());
+    $torrentPaths = $drupal_config->get('amazons3_torrents', array());
     $paths = BasicPath::factory($torrentPaths);
     if (!empty($paths)) {
       $config->setTorrentPaths(new MatchablePaths($paths));
     }
 
     // Presigned url-list.
-    $presigned_urls = static::variable_get('amazons3_presigned_urls', array());
+    $presigned_urls = $drupal_config->get('amazons3_presigned_urls', array());
     $paths = array();
     foreach ($presigned_urls as $presigned_url) {
       $paths[] = new PresignedPath($presigned_url['pattern'], $presigned_url['timeout']);
@@ -396,14 +400,14 @@ class StreamWrapperConfiguration extends Collection {
     }
 
     // Force "save as" list.
-    $saveAsPaths = static::variable_get('amazons3_saveas', array());
+    $saveAsPaths = $drupal_config->get('amazons3_saveas', array());
     $paths = BasicPath::factory($saveAsPaths);
     if (!empty($paths)) {
       $config->setSaveAsPaths(new MatchablePaths($paths));
     }
 
     // Reduced Redundancy Storage.
-    $rrsPaths = static::variable_get('amazons3_rrs', array());
+    $rrsPaths = $drupal_config->get('amazons3_rrs', array());
     $paths = BasicPath::factory($rrsPaths);
     if (!empty($paths)) {
       $config->setReducedRedundancyPaths(new MatchablePaths($paths));

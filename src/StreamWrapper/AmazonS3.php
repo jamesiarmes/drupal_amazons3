@@ -6,6 +6,7 @@
 
 namespace Drupal\amazons3\StreamWrapper;
 
+use Drupal\amazons3\Config;
 use \Drupal\amazons3\S3Url;
 use \Drupal\amazons3\StreamWrapperConfiguration;
 
@@ -16,8 +17,9 @@ use \Drupal\amazons3\Matchable\BasicPath;
 use \Drupal\amazons3\Matchable\PresignedPath;
 use \Guzzle\Cache\DoctrineCacheAdapter;
 
-use \Aws\S3\S3Client as AwsS3Client;
+use \Aws\S3\S3Client;
 use \Aws\CacheInterface;
+use \Aws\Credentials\Credentials;
 
 use \Guzzle\Http\Url;
 
@@ -50,7 +52,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    *
    * @var string
    */
-  protected static $s3ClientClass = '\Drupal\amazons3\S3Client';
+  protected static $s3ClientClass = '\Aws\S3\S3Client';
 
   /**
    * Default configuration used when constructing a new stream wrapper.
@@ -60,9 +62,14 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
   protected static $defaultConfig;
 
   /**
+   * @var \Aws\S3\S3Client
+   */
+  protected $client;
+
+  /**
    * Configuration for this stream wrapper.
    *
-   * @var \Drupal\amazons3\StreamWrapperConfiguration
+   * @var \Drupal\amazons3\Config
    */
   protected $config;
 
@@ -125,15 +132,27 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
       }
     }
 
+//    $config = array(
+//      'bucket' => $config->getBucket(),
+//      'credentials' => new Credentials(
+//        \Drupal::config('amazons3.settings')->get('amazons3_key'),
+//        \Drupal::config('amazons3.settings')->get('amazons3_secret')
+//      ),
+//      'region' => 'use-east-1',
+//      'version' => '2006-03-01',
+//    );
+    $config = new Config();
+
     $this->config = $config;
 
     if (!$this->getClient()) {
       /** @var S3Client $name */
       $name = static::$s3ClientClass;
-      $this->setClient($name::factory());
+      $client = new $name($config->asArray());
+      $this->setClient($client);
     }
 
-    if ($this->config->isCaching() && !static::$cache) {
+    if ($this->config->cache() && !static::$cache) {
       static::attachCache(
         new DoctrineCacheAdapter(new ChainCache([new ArrayCache(), new Cache()])),
         $this->config->getCacheLifetime()
@@ -147,7 +166,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    * @return \Aws\S3\S3Client
    */
   public function getClient() {
-    return self::$client;
+    return $this->client;
   }
 
   /**
@@ -158,8 +177,10 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    * @param \Aws\S3\S3Client $client
    *   The client to use. Set to NULL to remove an existing client.
    */
-  public function setClient(AwsS3Client $client = NULL) {
-    self::$client = $client;
+  public function setClient(S3Client $client = NULL) {
+    $this->client = $client;
+    stream_context_set_option(stream_context_get_default(), 's3', 'client', $client);
+    stream_context_set_option(stream_context_get_default(), 's3', 'ACL', 'public-read');
   }
 
   /**
@@ -193,11 +214,11 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    * {@inheritdoc}
    */
   function setUri($uri) {
-    // file_stream_wrapper_get_instance_by_scheme() assumes that all schemes
+    // file_stream_wrapper_get_instance_by_scheme() assumes that all schemesb
     // can work without a directory, but S3 requires a bucket. If a raw scheme
     // is passed in, we append our default bucket.
     if ($uri == 's3://') {
-      $uri = 's3://' . $this->config->getBucket();
+      $uri = 's3://' . $this->config->bucket();
     }
 
     $this->uri = S3Url::factory($uri);
@@ -249,7 +270,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
     }
 
     // @codeCoverageIgnoreStart
-    if ($expiry && $this->config->isCloudFront()) {
+    if ($expiry && $this->config->cloudfront()) {
       $url = $this->getCloudFrontUrl($path, $expiry);
     }
     // @codeCoverageIgnoreEnd
@@ -412,7 +433,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    *   download, FALSE otherwise.
    */
   protected function forceDownload() {
-    return $this->config->getSaveAsPaths()->match($this->getLocalPath());
+    return $this->config->saveas()->match($this->getLocalPath());
   }
 
   /**
@@ -422,7 +443,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    *   The BasicPath if a torrent should be served, FALSE otherwise.
    */
   protected function useTorrent() {
-    return $this->config->getTorrentPaths()->match($this->getLocalPath());
+    return $this->config->torrents()->match($this->getLocalPath());
   }
 
   /**
@@ -433,7 +454,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    *   otherwise.
    */
   protected function usePresigned() {
-    return $this->config->getPresignedPaths()->match($this->getLocalPath());
+    return $this->config->presigned_paths()->match($this->getLocalPath());
   }
 
   /**
@@ -444,7 +465,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    *   otherwise.
    */
   protected function useRrs() {
-    return $this->config->getReducedRedundancyPaths()->match($this->getLocalPath());
+    return $this->config->rrs()->match($this->getLocalPath());
   }
 
   /**
@@ -454,8 +475,8 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    *   The URL to modify.
    */
   protected function injectCname($url) {
-    if (strpos($url->getHost(), $this->config->getDomain()) === FALSE) {
-      $url->setHost($this->config->getDomain());
+    if (!empty($this->config->domain()) && strpos($url->getHost(), $this->config->domain()) === FALSE) {
+      $url->setHost($this->config->domain());
     }
   }
 
@@ -501,7 +522,7 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    */
   protected function getS3Url($key, $expiry = NULL, array $args = array()) {
     $url = Url::factory(
-      static::$client->getObjectUrl(
+      $this->client->getObjectUrl(
         $this->uri->getBucket(),
         $key,
         $expiry,
@@ -525,7 +546,9 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
    */
   public function mkdir($path, $mode, $options) {
     $this->setUri($path);
-    return parent::mkdir($path, $mode, $options);
+    $result = parent::mkdir($path, $mode, $options);
+
+    return $result;
   }
 
   /**
@@ -604,73 +627,26 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
-   * @return bool
-   */
-  public function dir_closedir()
-  {
-    // TODO: Implement dir_closedir() method.
-  }
-
-  /**
-   * @return string
-   */
-  public function dir_readdir()
-  {
-    // TODO: Implement dir_readdir() method.
-  }
-
-  /**
-   * @return bool
-   */
-  public function dir_rewinddir()
-  {
-    // TODO: Implement dir_rewinddir() method.
-  }
-
-  /**
-   * Retrieve the underlying stream resource.
+   * Returns the type of stream wrapper.
    *
-   * This method is called in response to stream_select().
-   *
-   * @param int $cast_as
-   *   Can be STREAM_CAST_FOR_SELECT when stream_select() is calling
-   *   stream_cast() or STREAM_CAST_AS_STREAM when stream_cast() is called for
-   *   other uses.
-   *
-   * @return resource|false
-   *   The underlying stream resource or FALSE if stream_select() is not
-   *   supported.
-   *
-   * @see stream_select()
-   * @see http://php.net/manual/streamwrapper.stream-cast.php
+   * @return int
    */
-  public function stream_cast($cast_as)
-  {
-    // TODO: Implement stream_cast() method.
+  public static function getType() {
+    return StreamWrapperInterface::LOCAL_NORMAL;
   }
 
   /**
-   * @return void
+   * {@inheritdoc}
    */
-  public function stream_close()
-  {
-    // TODO: Implement stream_close() method.
+  public function getName() {
+    return t('Amazon S3');
   }
 
   /**
-   * @return bool
+   * {@inheritdoc}
    */
-  public function stream_eof()
-  {
-    // TODO: Implement stream_eof() method.
-  }
-
-  /**
-   * @return bool
-   */
-  public function stream_flush()
-  {
-    // TODO: Implement stream_flush() method.
+  public function getDescription() {
+    return t('Files stored and served from Amazon Simple Storage Solution.');
   }
 
   /**
@@ -706,41 +682,6 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
   public function stream_metadata($path, $option, $value)
   {
     // TODO: Implement stream_metadata() method.
-  }
-
-  /**
-   * @return string
-   */
-  public function stream_read($count)
-  {
-    // TODO: Implement stream_read() method.
-  }
-
-  /**
-   * Seeks to specific location in a stream.
-   *
-   * This method is called in response to fseek().
-   *
-   * The read/write position of the stream should be updated according to the
-   * offset and whence.
-   *
-   * @param int $offset
-   *   The byte offset to seek to.
-   * @param int $whence
-   *   Possible values:
-   *   - SEEK_SET: Set position equal to offset bytes.
-   *   - SEEK_CUR: Set position to current location plus offset.
-   *   - SEEK_END: Set position to end-of-file plus offset.
-   *   Defaults to SEEK_SET.
-   *
-   * @return bool
-   *   TRUE if the position was updated, FALSE otherwise.
-   *
-   * @see http://php.net/manual/streamwrapper.stream-seek.php
-   */
-  public function stream_seek($offset, $whence = SEEK_SET)
-  {
-    // TODO: Implement stream_seek() method.
   }
 
   /**
@@ -780,22 +721,6 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
-   * @return array
-   */
-  public function stream_stat()
-  {
-    // TODO: Implement stream_stat() method.
-  }
-
-  /**
-   * @return int
-   */
-  public function stream_tell()
-  {
-    // TODO: Implement stream_tell() method.
-  }
-
-  /**
    * Truncate stream.
    *
    * Will respond to truncation; e.g., through ftruncate().
@@ -809,45 +734,5 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
   public function stream_truncate($new_size)
   {
     // TODO: Implement stream_truncate() method.
-  }
-
-  /**
-   * @return int
-   */
-  public function stream_write($data)
-  {
-    // TODO: Implement stream_write() method.
-  }
-
-  /**
-   * Returns the type of stream wrapper.
-   *
-   * @return int
-   */
-  public static function getType()
-  {
-    // TODO: Implement getType() method.
-  }
-
-  /**
-   * Returns the name of the stream wrapper for use in the UI.
-   *
-   * @return string
-   *   The stream wrapper name.
-   */
-  public function getName()
-  {
-    // TODO: Implement getName() method.
-  }
-
-  /**
-   * Returns the description of the stream wrapper for use in the UI.
-   *
-   * @return string
-   *   The stream wrapper description.
-   */
-  public function getDescription()
-  {
-    // TODO: Implement getDescription() method.
   }
 }
