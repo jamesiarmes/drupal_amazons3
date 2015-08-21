@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\DrupalAdapter\FileMimetypes.
+ */
+
 namespace Drupal\amazons3\DrupalAdapter;
 
 /**
@@ -19,4 +24,5 @@ trait FileMimetypes {
     include_once \Drupal::root() . '/includes/file.mimetypes.inc';
     return file_mimetype_mapping();
   }
+
 }

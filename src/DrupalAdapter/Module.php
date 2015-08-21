@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\DrupalAdapter\Module.
+ */
+
 namespace Drupal\amazons3\DrupalAdapter;
 
 /**
@@ -30,4 +35,5 @@ trait Module {
   public function drupal_alter($type, &$data, &$context1 = NULL, &$context2 = NULL, &$context3 = NULL) {
     \drupal_alter($type, $data, $context1, $context2, $context3);
   }
+
 }

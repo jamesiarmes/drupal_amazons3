@@ -1,11 +1,11 @@
 <?php
 
-namespace Drupal\amazons3;
-
 /**
  * @file
- * A wrapper around S3Client::factory() using aws_key / aws_secret variables.
+ * Contains \Drupal\amazons3\S3Client.
  */
+
+namespace Drupal\amazons3;
 
 use Aws\Common\Credentials\Credentials;
 use Drupal\amazons3\Exception\S3ConnectValidationException;
@@ -20,6 +20,7 @@ use Guzzle\Service\Command\Factory\AliasFactory;
  * @package Drupal\amazons3
  */
 class S3Client {
+
   use DrupalAdapter\Bootstrap;
 
   /**
@@ -124,4 +125,5 @@ class S3Client {
     );
     $client->setCommandFactory($default);
   }
+
 }

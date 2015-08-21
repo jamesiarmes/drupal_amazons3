@@ -1,21 +1,19 @@
 <?php
+
 /**
  * @file
  * Hook implementations for the Amazon S3 module.
  */
 
-use \Aws\Credentials\Credentials;
-use \Aws\S3\S3Client as AwsS3Client;
-
-use \Drupal\Core\Form\FormStateInterface;
-use \Drupal\Core\Field\WidgetBase;
-
-use \Drupal\amazons3\Config;
-use \Drupal\amazons3\Exception\S3ConnectValidationException;
-use \Drupal\amazons3\S3Client;
-use \Drupal\amazons3\S3Url;
-
-use \Drupal\field\Entity\FieldConfig;
+use Aws\Credentials\Credentials;
+use Aws\S3\S3Client as AwsS3Client;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Field\WidgetBase;
+use Drupal\amazons3\Config;
+use Drupal\amazons3\Exception\S3ConnectValidationException;
+use Drupal\amazons3\S3Client;
+use Drupal\amazons3\S3Url;
+use Drupal\field\Entity\FieldConfig;
 
 /**
  * Implements hook_stream_wrappers().

@@ -1,10 +1,16 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\CompositeFactory.
+ */
+
 namespace Drupal\amazons3;
 
 use Guzzle\Service\ClientInterface;
 use Guzzle\Service\Command\Factory\ConcreteClassFactory;
 use Guzzle\Service\Command\Factory\ServiceDescriptionFactory;
+use Guzzle\Service\Command\Factory\CompositeFactory as GuzzleCompositeFactory;
 
 /**
  * Override CompositeFactory to inject hook calls.
@@ -12,7 +18,8 @@ use Guzzle\Service\Command\Factory\ServiceDescriptionFactory;
  * @class CompositeFactory
  * @package Drupal\amazons3
  */
-class CompositeFactory extends \Guzzle\Service\Command\Factory\CompositeFactory {
+class CompositeFactory extends GuzzleCompositeFactory {
+
   use DrupalAdapter\Module;
 
   /**

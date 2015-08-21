@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\Cache.
+ */
+
 namespace Drupal\amazons3;
 
 use Capgemini\Cache\DrupalDoctrineCache;
@@ -23,4 +28,5 @@ class Cache extends DrupalDoctrineCache {
   function __construct() {
     $this->setCacheTable('cache_amazons3_metadata');
   }
+
 }

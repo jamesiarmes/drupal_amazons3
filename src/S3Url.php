@@ -1,8 +1,12 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\S3Url.
+ */
+
 namespace Drupal\amazons3;
 
-use Guzzle\Http\QueryString;
 use Guzzle\Http\Url;
 
 /**
@@ -133,4 +137,5 @@ class S3Url extends Url {
 
     return new static($parts['host'], substr($parts['path'], 1));
   }
+
 }

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\Exception\S3ConnectValidationException.
+ */
+
 namespace Drupal\amazons3\Exception;
 
 use Aws\S3\Exception\S3Exception;

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\Matchable\Matchable.
+ */
+
 namespace Drupal\amazons3\Matchable;
 
 /**
@@ -22,4 +27,5 @@ interface Matchable {
    *   The object that matched, or FALSE if no match was found.
    */
   public function match($subject);
+
 }

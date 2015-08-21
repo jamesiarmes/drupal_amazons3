@@ -1,13 +1,17 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\amazons3\StreamWrapperConfiguration.
+ */
+
 namespace Drupal\amazons3;
 
-use \Drupal\amazons3\StreamWrapper\AmazonS3;
-use \Drupal\amazons3\DrupalAdapter\Bootstrap;
-use \Drupal\amazons3\Matchable\BasicPath;
-use \Drupal\amazons3\Matchable\MatchablePaths;
-use \Drupal\amazons3\Matchable\PresignedPath;
-use \Guzzle\Common\Collection;
+use Drupal\amazons3\StreamWrapper\AmazonS3;
+use Drupal\amazons3\Matchable\BasicPath;
+use Drupal\amazons3\Matchable\MatchablePaths;
+use Drupal\amazons3\Matchable\PresignedPath;
+use Guzzle\Common\Collection;
 
 /**
  * Class to manage S3 stream wrapper configuration.
@@ -26,6 +30,7 @@ use \Guzzle\Common\Collection;
  * @package Drupal\amazons3
  */
 class StreamWrapperConfiguration extends Collection {
+
   /**
    * Generate a configuration object from an array.
    *
@@ -355,7 +360,6 @@ class StreamWrapperConfiguration extends Collection {
     // CNAME support for customizing S3 URLs.
     if ($drupal_config->get('amazons3_cname', FALSE)) {
       $domain = $drupal_config->get('amazons3_domain', $defaults['domain']);
-      $domain =$drupal_config->get('amazons3_domain', $defaults['domain']);
       if (strlen($domain) > 0) {
         $config->setDomain($domain);
       }
@@ -415,4 +419,5 @@ class StreamWrapperConfiguration extends Collection {
 
     return $config;
   }
+
 }
