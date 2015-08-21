@@ -42,7 +42,7 @@ class Config extends \ArrayObject {
    *   Value of the bucket setting.
    */
   public function bucket() {
-    return $this->get('amazons3_bucket');
+    return $this->get('bucket');
   }
 
   /**
@@ -52,7 +52,7 @@ class Config extends \ArrayObject {
    *   Value of the access key setting.
    */
   public function key() {
-    return $this->get('amazons3_key');
+    return $this->get('key');
   }
 
   /**
@@ -62,7 +62,7 @@ class Config extends \ArrayObject {
    *   Value of the secret key setting.
    */
   public function secret() {
-    return $this->get('amazons3_secret');
+    return $this->get('secret');
   }
 
   /**
@@ -72,7 +72,7 @@ class Config extends \ArrayObject {
    *   Whether or not caching is enabled.
    */
   public function cache() {
-    return $this->get('amazons3_cache', FALSE);
+    return $this->get('cache', FALSE);
   }
 
   /**
@@ -82,7 +82,7 @@ class Config extends \ArrayObject {
    *   Whether or not a CNAME should be used.
    */
   public function cname() {
-    return $this->get('amazons3_cname', FALSE);
+    return $this->get('cname', FALSE);
   }
 
   /**
@@ -92,7 +92,7 @@ class Config extends \ArrayObject {
    *   Value of the domain setting.
    */
   public function domain() {
-    return $this->get('amazons3_domain');
+    return $this->get('domain');
   }
 
   /**
@@ -102,7 +102,7 @@ class Config extends \ArrayObject {
    *   Whether or not CloudFront is enabled.
    */
   public function cloudfront() {
-    return $this->get('amazons3_cloudfront', FALSE);
+    return $this->get('cloudfront', FALSE);
   }
 
   /**
@@ -112,7 +112,7 @@ class Config extends \ArrayObject {
    *   ID for the CloudFront keypair.
    */
   public function cloudfront_keypair_id() {
-    return $this->get('amazons3_cloudfront_keypair_id');
+    return $this->get('cloudfront_keypair_id');
   }
 
   /**
@@ -122,7 +122,7 @@ class Config extends \ArrayObject {
    *   Private key to use for CloudFront.
    */
   public function cloudfront_private_key() {
-    return $this->get('amazons3_cloudfront_private_key');
+    return $this->get('cloudfront_private_key');
   }
 
   /**
@@ -132,7 +132,7 @@ class Config extends \ArrayObject {
    *   Value of the hostname setting.
    */
   public function hostname() {
-    return $this->get('amazons3_hostname');
+    return $this->get('hostname');
   }
 
   /**
@@ -142,7 +142,7 @@ class Config extends \ArrayObject {
    *   Value of the file URI scheme override setting.
    */
   public function file_uri_scheme_override() {
-    return $this->get('amazons3_file_uri_scheme_override', FALSE);
+    return $this->get('file_uri_scheme_override', FALSE);
   }
 
   /**
@@ -152,18 +152,18 @@ class Config extends \ArrayObject {
    *   Value of the migrate credentials setting.
    */
   public function migrate_credentials() {
-    return $this->get('amazons3_migrate_credentials', TRUE);
+    return $this->get('migrate_credentials', TRUE);
   }
 
   public function saveas() {
-    $paths = $this->get('amazons3_saveas', array());
+    $paths = $this->get('saveas', array());
     $paths = BasicPath::factory($paths);
 
     return new MatchablePaths($paths);
   }
 
   public function torrents() {
-    $paths = $this->get('amazons3_torrents', array());
+    $paths = $this->get('torrents', array());
     $paths = BasicPath::factory($paths);
 
     return new MatchablePaths($paths);
@@ -171,7 +171,7 @@ class Config extends \ArrayObject {
 
   public function presigned_paths() {
     $paths = array();
-    foreach ($this->get('amazons3_presigned_urls', array()) as $presigned_url) {
+    foreach ($this->get('presigned_urls', array()) as $presigned_url) {
       $paths[] = new PresignedPath($presigned_url['pattern'], $presigned_url['timeout']);
     }
 
@@ -179,7 +179,7 @@ class Config extends \ArrayObject {
   }
 
   public function rrs() {
-    $paths = $this->get('amazons3_rrs', array());
+    $paths = $this->get('rrs', array());
     $paths = BasicPath::factory($paths);
 
     return new MatchablePaths($paths);
@@ -199,7 +199,7 @@ class Config extends \ArrayObject {
   }
 
   public function region() {
-    return $this->get('amazons3_region', 'us-east-1');
+    return $this->get('region', 'us-east-1');
   }
 
   public function version() {

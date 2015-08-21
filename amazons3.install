@@ -56,18 +56,18 @@ function amazons3_requirements($phase) {
  * Implements hook_uninstall().
  */
 function amazons3_uninstall() {
-  \Drupal::config('amazons3.settings')->clear('amazons3_key')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_secret')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_bucket')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_cname')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_domain')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_cache')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_cache_expiration')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_torrents')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_presigned_urls')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_saveas')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_rrs')->save();
-  \Drupal::config('amazons3.settings')->clear('amazons3_hostname')->save();
+  \Drupal::config('amazons3.settings')->clear('key')->save();
+  \Drupal::config('amazons3.settings')->clear('secret')->save();
+  \Drupal::config('amazons3.settings')->clear('bucket')->save();
+  \Drupal::config('amazons3.settings')->clear('cname')->save();
+  \Drupal::config('amazons3.settings')->clear('domain')->save();
+  \Drupal::config('amazons3.settings')->clear('cache')->save();
+  \Drupal::config('amazons3.settings')->clear('cache_expiration')->save();
+  \Drupal::config('amazons3.settings')->clear('torrents')->save();
+  \Drupal::config('amazons3.settings')->clear('presigned_urls')->save();
+  \Drupal::config('amazons3.settings')->clear('saveas')->save();
+  \Drupal::config('amazons3.settings')->clear('rrs')->save();
+  \Drupal::config('amazons3.settings')->clear('hostname')->save();
 }
 
 /**
@@ -186,7 +186,7 @@ function amazons3_update_7200() {
 // Could not extract the default value because it is either indeterminate, or
 // not scalar. You'll need to provide a default value in
 // config/install/amazons3.settings.yml and config/schema/amazons3.schema.yml.
-$bucket = \Drupal::config('amazons3.settings')->get('amazons3_bucket');
+$bucket = \Drupal::config('amazons3.settings')->get('bucket');
   db_update('file_managed')
     ->condition('uri', 's3://%', 'LIKE')
     ->expression('uri', 'REPLACE(uri, :protocol, :bucket)', array(
@@ -195,7 +195,7 @@ $bucket = \Drupal::config('amazons3.settings')->get('amazons3_bucket');
     ))
     ->execute();
 
-  \Drupal::config('amazons3.settings')->clear('amazons3_https')->save();
+  \Drupal::config('amazons3.settings')->clear('https')->save();
 }
 
 /**
@@ -206,13 +206,13 @@ function amazons3_update_7201() {
   drupal_set_message($t('AmazonS3 no longer requires the AWS SDK module.'));
   drupal_set_message($t('If your API keys are in settings.php, they will need to be renamed to amazons3_key and amazons3_secret. To avoid writing these values to the database, set amazons3_migrate_credentials to FALSE in settings.php.'));
 
-  if (\Drupal::config('amazons3.settings')->get('amazons3_migrate_credentials')) {
+  if (\Drupal::config('amazons3.settings')->get('migrate_credentials')) {
     // @FIXME
 // // @FIXME
 // // This looks like another module's variable. You'll need to rewrite this call
 // // to ensure that it uses the correct configuration object.
 // if ($key = variable_get('aws_key', FALSE)) {
-//       variable_set('amazons3_key', $key);
+//       variable_set('key', $key);
 //     }
 
 
@@ -221,7 +221,7 @@ function amazons3_update_7201() {
 // // This looks like another module's variable. You'll need to rewrite this call
 // // to ensure that it uses the correct configuration object.
 // if ($secret = variable_get('aws_secret', FALSE)) {
-//       variable_set('amazons3_secret', $secret);
+//       variable_set('secret', $secret);
 //     }
 
 
@@ -246,10 +246,10 @@ function amazons3_update_7202() {
  */
 function amazons3_update_7203() {
   $variables = array(
-    'amazons3_presigned_urls',
-    'amazons3_rrs',
-    'amazons3_saveas',
-    'amazons3_torrents',
+    'presigned_urls',
+    'rrs',
+    'saveas',
+    'torrents',
   );
 
   foreach ($variables as $name) {
@@ -281,7 +281,7 @@ function amazons3_update_7204() {
 // Could not extract the default value because it is either indeterminate, or
 // not scalar. You'll need to provide a default value in
 // config/install/amazons3.settings.yml and config/schema/amazons3.schema.yml.
-$lines = \Drupal::config('amazons3.settings')->get('amazons3_presigned_urls');
+$lines = \Drupal::config('amazons3.settings')->get('presigned_urls');
   if (empty($lines)) {
     return;
   }
@@ -295,5 +295,5 @@ $lines = \Drupal::config('amazons3.settings')->get('amazons3_presigned_urls');
     );
   }
 
-  \Drupal::config('amazons3.settings')->set('amazons3_presigned_urls', $config)->save();
+  \Drupal::config('amazons3.settings')->set('presigned_urls', $config)->save();
 }

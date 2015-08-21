@@ -8,7 +8,6 @@ namespace Drupal\amazons3\StreamWrapper;
 
 use Drupal\amazons3\Config;
 use \Drupal\amazons3\S3Url;
-use \Drupal\amazons3\StreamWrapperConfiguration;
 
 use \Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use \Doctrine\Common\Cache\ArrayCache;
@@ -126,24 +125,14 @@ class AmazonS3 extends \Aws\S3\StreamWrapper implements StreamWrapperInterface {
         $config = static::$defaultConfig;
       }
       else {
-        // @codeCoverageIgnoreStart
-        $config = StreamWrapperConfiguration::fromDrupalVariables();
+        // @codeCoverageIgnoreStartStreamWrapperConfiguration
+        $config = new Config();
         // @codeCoverageIgnoreEnd
       }
     }
 
-//    $config = array(
-//      'bucket' => $config->getBucket(),
-//      'credentials' => new Credentials(
-//        \Drupal::config('amazons3.settings')->get('amazons3_key'),
-//        \Drupal::config('amazons3.settings')->get('amazons3_secret')
-//      ),
-//      'region' => 'use-east-1',
-//      'version' => '2006-03-01',
-//    );
-    $config = new Config();
-
-    $this->config = $config;
+    // TODO: Accept the proper object.
+    $this->config = new Config();
 
     if (!$this->getClient()) {
       /** @var S3Client $name */
