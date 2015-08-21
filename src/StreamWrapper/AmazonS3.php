@@ -52,13 +52,6 @@ class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
   const stylesCallback = 'amazons3/image-derivative';
 
   /**
-   * The name of the S3Client class to use.
-   *
-   * @var string
-   */
-  protected static $s3ClientClass = '\Aws\S3\S3Client';
-
-  /**
    * Default configuration used when constructing a new stream wrapper.
    *
    * @var \Drupal\amazons3\StreamWrapperConfiguration
@@ -110,15 +103,6 @@ class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
-   * Set the name of the S3Client class to use.
-   *
-   * @param string $client
-   */
-  public static function setS3ClientClass($client) {
-    static::$s3ClientClass = $client;
-  }
-
-  /**
    * Construct a new stream wrapper.
    *
    * @param \Drupal\amazons3\Config $config
@@ -133,8 +117,7 @@ class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
 
     if (!$this->getClient()) {
       /** @var S3Client $name */
-      $name = static::$s3ClientClass;
-      $client = new $name($config->asArray());
+      $client = new S3Client($config->clientOptions());
       $this->setClient($client);
     }
 
@@ -144,6 +127,9 @@ class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
         $this->config->getCacheLifetime()
       );
     }
+
+    // Set stream options.
+    $this->setOptions();
   }
 
   /**
@@ -166,7 +152,6 @@ class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
   public function setClient(S3Client $client = NULL) {
     $this->client = $client;
     stream_context_set_option(stream_context_get_default(), 's3', 'client', $client);
-    stream_context_set_option(stream_context_get_default(), 's3', 'ACL', 'public-read');
   }
 
   /**
@@ -367,25 +352,13 @@ class AmazonS3 extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
-   * Override getOptions() to default all files to be publicly readable.
-   *
-   * {@inheritdoc}
-   *
-   * @todo Gather and set options appropriately.
+   * Sets configuration options on the stream.
    */
-  public function getOptions($removeContextData = false) {
-    if (!isset($this->uri)) {
-      throw new \LogicException('A URI must be set before calling getOptions().');
+  protected function setOptions() {
+    stream_context_set_option(stream_context_get_default(), 's3', 'ACL', 'public-read');
+    if ($this->config->rrs()) {
+      stream_context_set_option(stream_context_get_default(), 's3', 'StorageClass', 'REDUCED_REDUNDANCY');
     }
-
-    $options = parent::getOptions();
-    $options['ACL'] = 'public-read';
-
-    if ($this->useRrs()) {
-      $options['StorageClass'] = 'REDUCED_REDUNDANCY';
-    }
-
-    return $options;
   }
 
   /**

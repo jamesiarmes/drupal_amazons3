@@ -217,7 +217,12 @@ class Config extends \ArrayObject {
     return new Credentials($this->key(), $this->secret());
   }
 
-  public function asArray() {
+  /**
+   * Builds an array of options that can be used for the S3 client.
+   *
+   * @return array
+   */
+  public function clientOptions() {
     return array(
       'bucket' => $this->bucket(),
       'credentials' => $this->credentials(),
