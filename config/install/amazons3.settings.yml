@@ -1,4 +1,5 @@
 amazons3_bucket: ''
+amazons3_region: 'us-east-1'
 amazons3_file_uri_scheme_override: false
 amazons3_key: ''
 amazons3_secret: ''

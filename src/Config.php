@@ -15,6 +15,13 @@ use Drupal\amazons3\Matchable\PresignedPath;
 
 class Config extends \ArrayObject {
   /**
+   * Amazon S3 API version.
+   *
+   * @var string
+   */
+  const API_VERSION = '2006-03-01';
+
+  /**
    * Drupal configuration object.
    *
    * @var \Drupal\Core\Config\Config
@@ -192,11 +199,11 @@ class Config extends \ArrayObject {
   }
 
   public function region() {
-    return 'us-east-1';
+    return $this->get('amazons3_region', 'us-east-1');
   }
 
   public function version() {
-    return '2006-03-01';
+    return self::API_VERSION;
   }
 
   /**

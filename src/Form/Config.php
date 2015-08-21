@@ -46,6 +46,14 @@ class Config extends ConfigFormBase {
       '#element_validate' => array('amazons3_form_bucket_validate'),
     );
 
+    $form['amazons3_region'] = array(
+      '#title' => t('Region'),
+      '#type' => 'select',
+      '#options' => amazons3_regions(),
+      '#default_value' => $this->config('amazons3.settings')->get('amazons3_region'),
+      '#required' => TRUE,
+    );
+
     $form['amazons3_cache'] = array(
       '#type' => 'checkbox',
       '#title' => t('Enable metadata caching'),
@@ -178,6 +186,7 @@ class Config extends ConfigFormBase {
       ->set('amazons3_key', $form_state->getValue('amazons3_key'))
       ->set('amazons3_secret', $form_state->getValue('amazons3_secret'))
       ->set('amazons3_bucket', $form_state->getValue('amazons3_bucket'))
+      ->set('amazons3_region', $form_state->getValue('amazons3_region'))
       ->set('amazons3_cache', $form_state->getValue('amazons3_cache'))
       ->set('amazons3_cache_expiration', $form_state->getValue('amazons3_cache_expiration'))
       ->set('amazons3_cname', $form_state->getValue('amazons3_cname'))

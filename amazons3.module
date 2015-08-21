@@ -10,6 +10,7 @@ use \Aws\S3\S3Client as AwsS3Client;
 use \Drupal\Core\Form\FormStateInterface;
 use \Drupal\Core\Field\WidgetBase;
 
+use \Drupal\amazons3\Config;
 use \Drupal\amazons3\Exception\S3ConnectValidationException;
 use \Drupal\amazons3\S3Client;
 use \Drupal\amazons3\S3Url;
@@ -561,8 +562,8 @@ function amazons3_form_bucket_validate(array &$element, FormStateInterface &$for
   }
 
   // TODO: Convert this to a setting.
-  $config['region'] = 'us-east-1';
-  $config['version'] = '2006-03-01';
+  $config['region'] =  \Drupal::config('amazons3.settings')->get('amazons3_region');
+  $config['version'] = Config::API_VERSION;
 
   try {
     $client = new AwsS3Client($config);
@@ -596,4 +597,28 @@ function amazons3_field_default_field_bases_alter(&$fields) {
       }
     }
   }
+}
+
+/**
+ * Provides an array of AWS regions that support S3.
+ *
+ * @return array
+ *   Array of AWS regions.
+ *
+ * @link http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+ */
+function amazons3_regions() {
+  $regions = array(
+    'us-east-1',
+    'us-west-1',
+    'us-west-2',
+    'eu-west-1',
+    'eu-central-1',
+    'ap-southeast-1',
+    'ap-southeast-2',
+    'ap-northeast-1',
+    'sa-east-1',
+  );
+
+  return array_combine($regions, $regions);
 }
