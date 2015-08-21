@@ -351,24 +351,24 @@ class StreamWrapperConfiguration extends Collection {
     $drupal_config = new Config();
 
     $config = array();
-    $config['bucket'] = $drupal_config->get('amazons3_bucket');
+    $config['bucket'] = $drupal_config->bucket();
     $config = self::FromConfig($config);
     $defaults = $config->defaults();
 
-    $config->setHostname($drupal_config->get('amazons3_hostname', $defaults['hostname']));
+    $config->setHostname($drupal_config->get('hostname', $defaults['hostname']));
 
     // CNAME support for customizing S3 URLs.
-    if ($drupal_config->get('amazons3_cname', FALSE)) {
-      $domain = $drupal_config->get('amazons3_domain', $defaults['domain']);
+    if ($drupal_config->get('cname', FALSE)) {
+      $domain = $drupal_config->get('domain', $defaults['domain']);
       if (strlen($domain) > 0) {
         $config->setDomain($domain);
       }
       else {
         $config->setDomain($config->getBucket());
       }
-      if ($drupal_config->get('amazons3_cloudfront', $defaults['cloudFront'])) {
-        $path = $drupal_config->get('amazons3_cloudfront_private_key', $defaults['cloudFrontPrivateKey']);
-        $keyPairId = $drupal_config->get('amazons3_cloudfront_keypair_id', $defaults['cloudFrontKeyPairId']);
+      if ($drupal_config->get('cloudfront', $defaults['cloudFront'])) {
+        $path = $drupal_config->get('cloudfront_private_key', $defaults['cloudFrontPrivateKey']);
+        $keyPairId = $drupal_config->get('cloudfront_keypair_id', $defaults['cloudFrontKeyPairId']);
         $config->setCloudFrontCredentials($path, $keyPairId);
         $config->serveWithCloudFront();
       }
@@ -378,23 +378,23 @@ class StreamWrapperConfiguration extends Collection {
     }
 
     // Check whether local file caching is turned on.
-    if ($drupal_config->get('amazons3_cache', $defaults['caching'])) {
+    if ($drupal_config->get('cache', $defaults['caching'])) {
       $config->enableCaching();
-      $config->setCacheLifetime($drupal_config->get('amazons3_cache_expiration'));
+      $config->setCacheLifetime($drupal_config->get('cache_expiration'));
     }
     else {
       $config->disableCaching();
     }
 
     // Torrent list.
-    $torrentPaths = $drupal_config->get('amazons3_torrents', array());
+    $torrentPaths = $drupal_config->get('torrents', array());
     $paths = BasicPath::factory($torrentPaths);
     if (!empty($paths)) {
       $config->setTorrentPaths(new MatchablePaths($paths));
     }
 
     // Presigned url-list.
-    $presigned_urls = $drupal_config->get('amazons3_presigned_urls', array());
+    $presigned_urls = $drupal_config->get('presigned_urls', array());
     $paths = array();
     foreach ($presigned_urls as $presigned_url) {
       $paths[] = new PresignedPath($presigned_url['pattern'], $presigned_url['timeout']);
@@ -404,14 +404,14 @@ class StreamWrapperConfiguration extends Collection {
     }
 
     // Force "save as" list.
-    $saveAsPaths = $drupal_config->get('amazons3_saveas', array());
+    $saveAsPaths = $drupal_config->get('saveas', array());
     $paths = BasicPath::factory($saveAsPaths);
     if (!empty($paths)) {
       $config->setSaveAsPaths(new MatchablePaths($paths));
     }
 
     // Reduced Redundancy Storage.
-    $rrsPaths = $drupal_config->get('amazons3_rrs', array());
+    $rrsPaths = $drupal_config->get('rrs', array());
     $paths = BasicPath::factory($rrsPaths);
     if (!empty($paths)) {
       $config->setReducedRedundancyPaths(new MatchablePaths($paths));

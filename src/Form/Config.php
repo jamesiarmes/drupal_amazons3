@@ -45,7 +45,7 @@ class Config extends ConfigFormBase {
       '#title' => t('Default Bucket Name'),
       '#default_value' => $this->config('amazons3.settings')->get('bucket'),
       '#required' => TRUE,
-      '#element_validate' => array('form_bucket_validate'),
+      '#element_validate' => array('amazons3_form_bucket_validate'),
     );
 
     $form['region'] = array(

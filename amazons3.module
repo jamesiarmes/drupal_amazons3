@@ -346,7 +346,7 @@ function amazons3_field_widget_form_alter(&$element, FormStateInterface $form_st
 function amazons3_field_widget_uri(FieldConfig $field, WidgetBase $widget, array $data = array()) {
   $uri_scheme = $field->getFieldStorageDefinition()->getSetting('uri_scheme');
   $file_directory = $field->getSetting('file_directory');
-  $bucket = \Drupal::config('amzons3.settings')->get('amazons3_bucket');
+  $bucket = \Drupal::config('amzons3.settings')->get('bucket');
 
   return amazons3_upload_location($uri_scheme, $bucket, $file_directory, $data);
 }
@@ -508,7 +508,7 @@ function _amazons3_field_configuration(array &$form, FieldConfig $field) {
       'Leave blank to use the site-wide default bucket <a href="@config">currently set to %bucket</a>.',
       array(
         '@config' => \Drupal::url('amazons3.config'),
-        '%bucket' => \Drupal::config('amazons3.settings')->get('amazons3_bucket'),
+        '%bucket' => \Drupal::config('amazons3.settings')->get('bucket'),
       )
     ),
     '#states' => array(
@@ -540,14 +540,14 @@ function amazons3_form_bucket_validate(array &$element, FormStateInterface &$for
     return;
   }
 
-  $hostname = $form_state->getValue('amazons3_hostname');
+  $hostname = $form_state->getValue('hostname');
   if (empty($hostname)) {
-    $hostname = \Drupal::config('amazons3.settings')->get('amazons3_hostname');
+    $hostname = \Drupal::config('amazons3.settings')->get('hostname');
   }
 
   // Read credentials from the form.
-  $key = $form_state->getValue('amazons3_key');
-  $secret = $form_state->getValue('amazons3_secret');
+  $key = $form_state->getValue('key');
+  $secret = $form_state->getValue('secret');
 
   // Inject our credentials for testing.
   $config = array();
@@ -560,14 +560,16 @@ function amazons3_form_bucket_validate(array &$element, FormStateInterface &$for
   }
 
   // TODO: Convert this to a setting.
-  $config['region'] =  \Drupal::config('amazons3.settings')->get('amazons3_region');
+  $config['region'] =  $form_state->getValue('region');
   $config['version'] = Config::API_VERSION;
 
   try {
     $client = new AwsS3Client($config);
     if (!$client->doesBucketExist($bucket)) {
       $form_state->setError($element, t('The S3 access credentials are invalid or the bucket does not exist.'));
-      watchdog_exception('amazons3', $e);
+
+      // TODO: Log the error.
+//      watchdog_exception('amazons3', $e);
     }
   }
   catch (Exception $e) {
@@ -588,7 +590,7 @@ function amazons3_form_bucket_validate(array &$element, FormStateInterface &$for
  * @endcode
  */
 function amazons3_field_default_field_bases_alter(&$fields) {
-  if ($uri_scheme = \Drupal::config('amazons3.settings')->get('amazons3_file_uri_scheme_override')) {
+  if ($uri_scheme = \Drupal::config('amazons3.settings')->get('file_uri_scheme_override')) {
     foreach ($fields as $key => $item) {
       if (isset($item['settings']['uri_scheme'])) {
         $fields[$key]['settings']['uri_scheme'] = $uri_scheme;

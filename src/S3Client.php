@@ -21,8 +21,6 @@ use Guzzle\Service\Command\Factory\AliasFactory;
  */
 class S3Client {
 
-  use DrupalAdapter\Bootstrap;
-
   /**
    * This set of commandAliases is a protected static with no getter on the
    * S3Client class.
@@ -69,7 +67,8 @@ class S3Client {
    */
   public static function factory($config = array()) {
     if (!isset($config['credentials'])) {
-      $config['credentials'] = new Credentials(static::variable_get('amazons3_key'), static::variable_get('amazons3_secret'));
+      $drupal_config = new Config();
+      $config['credentials'] = $drupal_config->credentials();
     }
 
     $curl_defaults = array(
