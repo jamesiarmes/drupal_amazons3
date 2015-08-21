@@ -1,0 +1,5 @@
+entity.amazons3.settings:
+  title: 'Amazon S3'
+  description: 'Configure S3 credentials and settings.'
+  parent: system.admin_config_media
+  route_name: amazons3.config
