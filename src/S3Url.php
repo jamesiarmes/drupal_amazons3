@@ -114,8 +114,6 @@ class S3Url extends Url {
    *
    * @param string $url
    *   Full URL used to create a Url object.
-   * @param \Drupal\amazons3\StreamWrapperConfiguration $config
-   *   (optional) Configuration to associate with this URL.
    *
    * @throws \InvalidArgumentException
    *   Thrown when $url cannot be parsed by parse_url().
@@ -123,14 +121,23 @@ class S3Url extends Url {
    * @return static
    *   An S3Url.
    */
-  public static function factory($url, StreamWrapperConfiguration $config = null) {
-    !$config ? $bucket = null : $bucket = $config->getBucket();
+  public static function factory($url) {
+    $config = new Config();
 
-    $defaults = array('scheme' => 's3', 'host' => $bucket, 'path' => null, 'port' => null, 'query' => null,
-      'user' => null, 'pass' => null, 'fragment' => null);
+    $defaults = array(
+      'scheme' => 's3',
+      'host' => $config->bucket(),
+      'path' => null,
+      'port' => null,
+      'query' => null,
+      'user' => null,
+      'pass' => null,
+      'fragment' => null,
+    );
 
-    if (false === ($parts = parse_url($url))) {
-      throw new \InvalidArgumentException('Was unable to parse malformed url: ' . $url);
+    $parts = parse_url($url);
+    if ($parts === FALSE) {
+      throw new \InvalidArgumentException("Unable to parse malformed url: $url");
     }
 
     $parts += $defaults;
